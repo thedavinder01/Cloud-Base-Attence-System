@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cloud Based Attendance System</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<style>
+body{
+margin:0;
+font-family:Segoe UI;
+display:flex;
+height:100vh;
+}
+
+.left{
+flex:2;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+color:white;
+padding:20px;
+background:linear-gradient(-45deg,#ff6a00,#ee0979,#00c6ff,#0072ff,#00ff87);
+background-size:400% 400%;
+animation:rainbow 10s ease infinite;
+}
+
+.left h1{
+font-size:36px;
+margin:0;
+}
+
+.hero-img{
+width:85%;
+max-width:500px;
+margin-top:25px;
+border-radius:20px;
+border:3px solid rgba(255,255,255,.3);
+}
+
+.right{
+flex:1;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(-45deg,#ff9a9e,#fad0c4,#a18cd1,#fbc2eb);
+background-size:400% 400%;
+animation:rainbow 12s ease infinite;
+}
+
+.box{
+width:360px;
+padding:25px;
+border-radius:20px;
+background:rgba(255,255,255,.25);
+backdrop-filter:blur(20px);
+color:white;
+max-height:95vh;
+overflow:auto;
+}
+
+input,select,button{
+width:100%;
+padding:10px;
+margin:8px 0;
+border:none;
+border-radius:8px;
+box-sizing:border-box;
+}
+
+button{
+cursor:pointer;
+font-weight:bold;
+background:linear-gradient(to right,#ff512f,#dd2476);
+color:white;
+}
+
+.link{
+display:block;
+margin-top:10px;
+cursor:pointer;
+font-weight:bold;
+}
+
+#login,#teacherLogin,#register,#forgot,#dashboard,#teacherDashboard,#studentForm{
+display:none;
+}
+
+#qrcode{
+text-align:center;
+margin-top:15px;
+}
+
+ul{
+max-height:200px;
+overflow:auto;
+padding-left:18px;
+}
+
+.footer{
+text-align:center;
+font-size:12px;
+margin-top:15px;
+}
+
+@keyframes rainbow{
+0%{background-position:0%}
+50%{background-position:100%}
+100%{background-position:0%}
+}
+</style>
+</head>
+
+<body>
+
+<div class="left">
+<h1>Cloud Based Attendance System</h1>
+<p>Student + Teacher Dashboard</p>
+<img src="image.jpg" class="hero-img">
+</div>
+
+<div class="right">
+<div class="box">
+
+<!-- STUDENT LOGIN -->
+<div id="login">
+<h2>Student Login</h2>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="pass" placeholder="Password">
+<button onclick="login()">Login</button>
+<span class="link" onclick="showTeacherLogin()">Teacher Login</span>
+<span class="link" onclick="showForgot()">Forgot Password?</span>
+<span class="link" onclick="showRegister()">New User? Register</span>
+</div>
+
+<!-- TEACHER LOGIN -->
+<div id="teacherLogin">
+<h2>Teacher Login</h2>
+<input type="text" id="t_email" placeholder="Teacher ID">
+<input type="password" id="t_pass" placeholder="Password">
+<button onclick="teacherLogin()">Login</button>
+<span class="link" onclick="showLogin()">Student Login</span>
+</div>
+
+<!-- REGISTER -->
+<div id="register">
+<h2>Register</h2>
+<input type="email" id="r_email" placeholder="Login Email">
+<input type="password" id="r_pass" placeholder="Password">
+<input type="email" id="r_student_email" placeholder="Student Email Alerts">
+<button onclick="registerUser()">Register</button>
+<span class="link" onclick="showLogin()">Already User? Login</span>
+</div>
+
+<!-- FORGOT -->
+<div id="forgot">
+<h2>Forgot Password</h2>
+<input type="email" id="f_email" placeholder="Registered Email">
+<input type="password" id="new_pass" placeholder="New Password">
+<button onclick="resetPassword()">Reset Password</button>
+<span class="link" onclick="showLogin()">Back To Login</span>
+</div>
+
+<!-- STUDENT DASHBOARD -->
+<div id="dashboard">
+<h2>Student Dashboard</h2>
+
+<input id="name" placeholder="Student Name">
+
+<select id="subject">
+<option>Cloud</option>
+<option>AI</option>
+<option>Networking</option>
+</select>
+
+<select id="status">
+<option>Present</option>
+<option>Absent</option>
+</select>
+
+<button onclick="markAttendance()">Mark Attendance</button>
+<button onclick="generateQR()">Generate QR Code</button>
+<button onclick="showStudentForm()">QR User Form</button>
+<button onclick="exportExcel()">Export Excel</button>
+
+<div id="qrcode"></div>
+
+<div id="studentForm">
+<input type="text" id="scanName" placeholder="Student Name">
+<input type="date" id="scanDate">
+
+<select id="scanSubject">
+<option>Cloud</option>
+<option>AI</option>
+<option>Networking</option>
+</select>
+
+<select id="scanCourse">
+<option>BCA</option>
+<option>BBA</option>
+<option>MCA</option>
+</select>
+
+<select id="scanSlot">
+<option>9AM - 10AM</option>
+<option>10AM - 11AM</option>
+<option>11AM - 12PM</option>
+</select>
+
+<button onclick="submitQRAttendance()">Submit Attendance</button>
+</div>
+
+<ul id="list"></ul>
+
+<button onclick="logout()">Logout</button>
+</div>
+
+<!-- TEACHER DASHBOARD -->
+<div id="teacherDashboard">
+<h2>Teacher Dashboard</h2>
+
+<button onclick="loadTeacherData()">View Attendance</button>
+<button onclick="exportExcel()">Export Excel</button>
+
+<ul id="teacherList"></ul>
+
+<button onclick="logout()">Logout</button>
+</div>
+
+<p class="footer">© 2026 Cloud Based Attendance System</p>
+
+</div>
+</div>
+
+<script>
+
+window.onload=function(){
+showLogin();
+}
+
+function hideAll(){
+document.getElementById("login").style.display="none";
+document.getElementById("teacherLogin").style.display="none";
+document.getElementById("register").style.display="none";
+document.getElementById("forgot").style.display="none";
+document.getElementById("dashboard").style.display="none";
+document.getElementById("teacherDashboard").style.display="none";
+document.getElementById("studentForm").style.display="none";
+}
+
+function showLogin(){
+hideAll();
+document.getElementById("login").style.display="block";
+}
+
+function showTeacherLogin(){
+hideAll();
+document.getElementById("teacherLogin").style.display="block";
+}
+
+function showRegister(){
+hideAll();
+document.getElementById("register").style.display="block";
+}
+
+function showForgot(){
+hideAll();
+document.getElementById("forgot").style.display="block";
+}
+
+function showStudentForm(){
+document.getElementById("studentForm").style.display="block";
+}
+
+/* REGISTER */
+function registerUser(){
+
+let email=document.getElementById("r_email").value.trim();
+let pass=document.getElementById("r_pass").value.trim();
+let mail=document.getElementById("r_student_email").value.trim();
+
+if(email=="" || pass=="" || mail==""){
+alert("Please fill all fields");
+return;
+}
+
+if(localStorage.getItem(email)){
+alert("User already exists");
+return;
+}
+
+localStorage.setItem(email,pass);
+localStorage.setItem(email+"_mail",mail);
+
+alert("Registration Successful");
+showLogin();
+}
+
+/* STUDENT LOGIN */
+function login(){
+
+let email=document.getElementById("email").value.trim();
+let pass=document.getElementById("pass").value.trim();
+
+if(localStorage.getItem(email)==pass){
+hideAll();
+document.getElementById("dashboard").style.display="block";
+loadData();
+}else{
+alert("Invalid Email or Password");
+}
+}
+
+/* TEACHER LOGIN */
+function teacherLogin(){
+
+let id=document.getElementById("t_email").value.trim();
+let pass=document.getElementById("t_pass").value.trim();
+
+if(id=="teacher" && pass=="12345"){
+hideAll();
+document.getElementById("teacherDashboard").style.display="block";
+loadTeacherData();
+}else{
+alert("Invalid Teacher Login");
+}
+}
+
+/* FORGOT PASSWORD */
+function resetPassword(){
+
+let email=document.getElementById("f_email").value.trim();
+let newPass=document.getElementById("new_pass").value.trim();
+
+if(localStorage.getItem(email)==null){
+alert("Email not registered");
+return;
+}
+
+localStorage.setItem(email,newPass);
+
+alert("Password Changed Successfully");
+showLogin();
+}
+
+/* MARK ATTENDANCE */
+function markAttendance(){
+
+let data=JSON.parse(localStorage.getItem("att")) || [];
+
+data.push({
+name:document.getElementById("name").value,
+subject:document.getElementById("subject").value,
+status:document.getElementById("status").value,
+date:new Date().toLocaleDateString()
+});
+
+localStorage.setItem("att",JSON.stringify(data));
+
+loadData();
+checkAttendanceAndSendMail();
+}
+
+/* QR SUBMIT */
+function submitQRAttendance(){
+
+let data=JSON.parse(localStorage.getItem("att")) || [];
+
+data.push({
+name:document.getElementById("scanName").value,
+date:document.getElementById("scanDate").value,
+subject:document.getElementById("scanSubject").value,
+course:document.getElementById("scanCourse").value,
+slot:document.getElementById("scanSlot").value,
+status:"Present"
+});
+
+localStorage.setItem("att",JSON.stringify(data));
+
+alert("Attendance Saved Successfully");
+
+loadData();
+checkAttendanceAndSendMail();
+}
+
+/* STUDENT DATA */
+function loadData(){
+
+let list=document.getElementById("list");
+list.innerHTML="";
+
+let data=JSON.parse(localStorage.getItem("att")) || [];
+
+data.forEach(function(d){
+
+let li=document.createElement("li");
+li.innerHTML=
+(d.name||"")+" | "+
+(d.date||"")+" | "+
+(d.subject||"")+" | "+
+(d.course||"")+" | "+
+(d.slot||"")+" | "+
+(d.status||"");
+
+list.appendChild(li);
+
+});
+}
+
+/* TEACHER DATA */
+function loadTeacherData(){
+
+let list=document.getElementById("teacherList");
+list.innerHTML="";
+
+let data=JSON.parse(localStorage.getItem("att")) || [];
+
+data.forEach(function(d){
+
+let li=document.createElement("li");
+li.innerHTML=
+(d.name||"")+" | "+
+(d.date||"")+" | "+
+(d.subject||"")+" | "+
+(d.course||"")+" | "+
+(d.slot||"")+" | "+
+(d.status||"");
+
+list.appendChild(li);
+
+});
+}
+
+/* EXPORT */
+function exportExcel(){
+
+let data=JSON.parse(localStorage.getItem("att")) || [];
+
+let ws=XLSX.utils.json_to_sheet(data);
+let wb=XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(wb,ws,"Attendance");
+XLSX.writeFile(wb,"attendance.xlsx");
+}
+
+/* QR */
+function generateQR(){
+
+let qr=document.getElementById("qrcode");
+qr.innerHTML="";
+
+QRCode.toCanvas("Scan QR and fill attendance",{width:180},function(error,canvas){
+if(error)return;
+qr.appendChild(canvas);
+});
+}
+
+/* MAIL ALERT */
+function checkAttendanceAndSendMail(){
+
+let data=JSON.parse(localStorage.getItem("att")) || [];
+let total=data.length;
+
+if(total==0)return;
+
+let absent=data.filter(x=>x.status=="Absent").length;
+let percent=((total-absent)/total)*100;
+
+if(percent<75){
+
+for(let i=0;i<localStorage.length;i++){
+
+let key=localStorage.key(i);
+
+if(key.endsWith("_mail")){
+
+let mail=localStorage.getItem(key);
+
+window.location.href=
+"mailto:"+mail+
+"?subject=Low Attendance Warning"+
+"&body=Your attendance is "+percent.toFixed(2)+"%. Please improve above 75%.";
+
+break;
+}
+}
+}
+}
+
+function logout(){
+showLogin();
+}
+
+</script>
+
+</body>
+</html
